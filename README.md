@@ -1,66 +1,89 @@
-# Drive VLC Secure Player｜iOS 捷徑流動 token 版
+# Drive VLC Secure Player｜試算表設定 + 按鈕修正版
 
-這包是最新 ZIP，可直接覆蓋前端與 GAS。
+## 修正內容
 
-## 必改
+這版修正前一版「按鈕失效」問題。原因是前端 JS 裡的按鈕字串引號衝突，導致整段 JavaScript 沒有執行。
 
-### Code.gs
+這版也改成：
+
+- 不需要在 `Code.gs` 填 `INITIAL_LOGIN_KEY`
+- 管理登入密鑰放在試算表「系統設定」的 `admin_login_key`
+- 預設管理密鑰：`123456`
+- 限定播放清單網址放在試算表「播放清單網址管理」
+- 前端按鈕改成 `addEventListener`，不再用容易壞掉的 inline onclick 字串
+
+## 已預填
+
+GAS_API_URL：
+
+```txt
+https://script.google.com/macros/s/AKfycbziC1SpE1GgYdGLPKTigihBL6DZhIccS7dkAUI9ZFrzZFgDpvEs3-diWm4kviaLgn-U/exec
+```
+
+ROOT_FOLDER_ID：
+
+```txt
+1z4K04Dt6irjsgNrtcaoGC6H6e7YVIlmW
+```
+
+## 更新步驟
+
+1. 用這包的 `Code.gs` 覆蓋 GAS。
+2. 儲存。
+3. 執行：
 
 ```js
-const ROOT_FOLDER_ID = '你的影音資料夾ID';
-const INITIAL_LOGIN_KEY = '你的管理登入密鑰';
+setupDriveVlcSystem()
 ```
 
-你已經建立過 token 檔案就不用再執行 setup。若改登入密鑰，執行：
-
-```js
-resetDriveVlcLoginKey()
-```
-
-### index.html
-
-```js
-GAS_API_URL: '你的 GAS Web App /exec 網址',
-```
-
-## iOS 捷徑流程
-
-第一次登入：
+4. 重新部署 GAS Web App。
+5. 用這包的 `index.html` 覆蓋 GitHub Pages。
+6. 打開：
 
 ```txt
-GAS_URL?action=adminLogin&includeData=0&loginKey=你的管理密鑰
+https://edn869728-jpg.github.io/drive-vlc-secure-player/?admin=1&v=fix1
 ```
 
-保存回傳：
+## 登入密鑰在哪裡
+
+執行 `setupDriveVlcSystem()` 後會建立試算表：
 
 ```txt
-sessionToken
+Drive VLC 系統設定與播放清單管理
 ```
 
-之後換新 token：
+裡面有工作表：
 
 ```txt
-GAS_URL?action=refreshSession&sessionToken=目前token
+系統設定
 ```
 
-保存回傳：
+找到：
 
 ```txt
-nextSessionToken
+admin_login_key
 ```
 
-重點：每次成功驗證後，舊 token 立即失效，捷徑一定要把 nextSessionToken 覆蓋舊 token。
-
-## 網頁接收 token
+預設值是：
 
 ```txt
-https://你的GitHub頁面/#session=你的token
+123456
 ```
 
-也可以用：
+你可以直接在試算表改成自己的密鑰。
+
+## 關掉網址
+
+工作表：
 
 ```txt
-https://你的GitHub頁面/?admin=1
+播放清單網址管理
 ```
 
-強制進管理登入。
+把該列的 `status` 改成：
+
+```txt
+disabled
+```
+
+該分享網址就會失效。
