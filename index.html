@@ -100,13 +100,17 @@ function init(){
   importSessionFromHash();
   const url=new URL(location.href);
   playlistToken=url.searchParams.get('token')||'';
-  if(url.searchParams.get('admin')==='1'){showLogin();return;}
+  const s=getSession();
+
+  // 修正重點：只要有 sessionToken，就直接進管理頁，不再要求輸入密鑰。
+  if(s){mode='admin';showPlayer('admin','管理模式：已使用 session token 進入。密鑰只需要第一次登入。');fetchData(false);return;}
+
   if(playlistToken){mode='playlist';showPlayer('token','限定區：後端只回傳此 token 允許的歌曲；試算表停用後此網址立即失效。');fetchData(false);return;}
-  if(getSession()){mode='admin';showPlayer('admin','管理模式：設定與播放清單網址都走試算表。');fetchData(false);return;}
+
   showLogin();
 }
-function importSessionFromHash(){const h=String(location.hash||'');if(!h.startsWith('#session='))return;const t=decodeURIComponent(h.slice(9));if(t){setSession(t);history.replaceState(null,'',location.origin+location.pathname+'?admin=1');}}
-function forceAdminLogin(){playlistToken='';mode='guest';showLogin();history.replaceState(null,'',location.origin+location.pathname+'?admin=1');}
+function importSessionFromHash(){const h=String(location.hash||'');if(!h.startsWith('#session='))return false;const t=decodeURIComponent(h.slice(9));if(t){setSession(t);history.replaceState(null,'',location.origin+location.pathname+'?admin=1');toast('已接收 session token');return true;}return false;}
+function forceAdminLogin(){playlistToken='';removeSession();mode='guest';showLogin();history.replaceState(null,'',location.origin+location.pathname+'?admin=1');}
 function showLogin(){mode='guest';loginCard.style.display='block';tools.style.display='none';btnRefresh.style.display='none';btnShortcut.style.display='none';btnManage.style.display='none';btnSettings.style.display='none';btnLogout.style.display='none';main.innerHTML='';summary.style.display='none';updatePanel();banner.className='banner show token';banner.textContent='未登入：完整清單不會載入。管理密鑰在試算表「系統設定」admin_login_key。';}
 function showPlayer(kind,msg){loginCard.style.display='none';tools.style.display='grid';btnRefresh.style.display='inline-block';btnShortcut.style.display=kind==='admin'?'inline-block':'none';btnManage.style.display=kind==='admin'?'inline-block':'none';btnSettings.style.display=kind==='admin'?'inline-block':'none';btnLogout.style.display=kind==='admin'?'inline-block':'none';btnCreateShare.style.display=kind==='admin'?'inline-block':'none';banner.className='banner show '+(kind==='admin'?'admin':'token');banner.textContent=msg;}
 function loginAdmin(){const key=(loginKey.value||'').trim();if(!key)return toast('請輸入管理登入密鑰',true);setLoading('正在登入...');api({action:'adminLogin',loginKey:key,includeData:'1'}).then(function(r){if(!r.ok||!r.sessionToken)throw new Error(r.error||'登入失敗');setSession(r.sessionToken);mode='admin';showPlayer('admin','登入成功：設定與播放清單網址都走試算表。');allMedia=normalize(r.data||[]);renderMedia();toast('登入成功');}).catch(function(e){showError(e);removeSession();showLogin();});}

@@ -87,3 +87,28 @@ disabled
 ```
 
 該分享網址就會失效。
+
+
+## Token 直進修正
+
+這版已修正：
+
+```txt
+https://edn869728-jpg.github.io/drive-vlc-secure-player/#session=sess_xxxxx
+```
+
+會直接進管理頁，不會再要求輸入管理密鑰。
+
+規則：
+
+```txt
+沒有 sessionToken → 才顯示管理登入
+有 sessionToken → 直接進管理頁
+sessionToken 過期或無效 → 才重新登入
+```
+
+更新後請用清快取網址測試：
+
+```txt
+https://edn869728-jpg.github.io/drive-vlc-secure-player/?admin=1&v=directfix1
+```
