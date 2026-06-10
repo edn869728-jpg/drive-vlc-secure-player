@@ -1,75 +1,66 @@
-# Drive VLC 安全限定播放清單版
+# Drive VLC Secure Player｜iOS 捷徑流動 token 版
 
-## 重點
+這包是最新 ZIP，可直接覆蓋前端與 GAS。
 
-這版用「後端 token 檔案」防止別人繞回完整清單。
+## 必改
 
-- GitHub 前端不放管理 token
-- 完整清單必須管理登入
-- 登入成功後，後端才回傳 session token
-- 每次成功驗證後，才回傳 nextSessionToken
-- 前端確認成功才覆蓋舊 token
-- 舊 token 在後端立即失效
-- playlist token 只讓對方取得指定歌曲
-- token 檔案建立在你的「我的雲端硬碟根目錄」
-- token 檔案不放媒體資料夾，避免資料夾分享時一起公開
-
-## 檔案
-
-- index.html：放 GitHub Pages
-- Code.gs：放 GAS
-- README.md：說明
-
-## GAS 設定
-
-打開 Code.gs 改：
+### Code.gs
 
 ```js
-const ROOT_FOLDER_ID = 'PASTE_YOUR_DRIVE_MEDIA_FOLDER_ID_HERE';
-const INITIAL_LOGIN_KEY = 'CHANGE_THIS_LOGIN_KEY';
+const ROOT_FOLDER_ID = '你的影音資料夾ID';
+const INITIAL_LOGIN_KEY = '你的管理登入密鑰';
 ```
 
-然後在 GAS 執行一次：
-
-```js
-setupDriveVlcTokenFile()
-```
-
-它會建立：
-
-```txt
-_drive_vlc_private_token_store.json
-```
-
-## GitHub 設定
-
-打開 index.html 改：
-
-```js
-GAS_API_URL: 'PASTE_YOUR_GAS_WEB_APP_EXEC_URL_HERE',
-```
-
-填你的 GAS Web App /exec 網址。
-
-## 忘記登入密鑰
-
-1. 在 Code.gs 改 `INITIAL_LOGIN_KEY`
-2. 執行：
+你已經建立過 token 檔案就不用再執行 setup。若改登入密鑰，執行：
 
 ```js
 resetDriveVlcLoginKey()
 ```
 
-舊 session token 會失效，但已建立的限定播放清單不會刪掉。
+### index.html
 
-## 限定網址
-
-管理模式勾選歌曲後，按「產生限定網址」。
-
-網址會像：
-
-```txt
-https://你的github頁面/index.html?token=pl_xxxxx
+```js
+GAS_API_URL: '你的 GAS Web App /exec 網址',
 ```
 
-對方只能看到 token 對應的歌曲。
+## iOS 捷徑流程
+
+第一次登入：
+
+```txt
+GAS_URL?action=adminLogin&includeData=0&loginKey=你的管理密鑰
+```
+
+保存回傳：
+
+```txt
+sessionToken
+```
+
+之後換新 token：
+
+```txt
+GAS_URL?action=refreshSession&sessionToken=目前token
+```
+
+保存回傳：
+
+```txt
+nextSessionToken
+```
+
+重點：每次成功驗證後，舊 token 立即失效，捷徑一定要把 nextSessionToken 覆蓋舊 token。
+
+## 網頁接收 token
+
+```txt
+https://你的GitHub頁面/#session=你的token
+```
+
+也可以用：
+
+```txt
+https://你的GitHub頁面/?admin=1
+```
+
+強制進管理登入。
